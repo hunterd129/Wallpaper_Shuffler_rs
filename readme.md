@@ -1,9 +1,9 @@
-# About
+# Wallpaper Shuffler
 This is a recursive solution to automating wallpaper shuffle while also supporting multiple directories by starting in `~\Pictures\Wallpapers`, randomly picking any of the available choices, then using walkdir to find the new wallpaper from there.
-
+## About
 The primary issue with how Windows natively handles wallpaper shuffling is that it either requires you to organize your wallpapers into a lump sum, or to manually choose which directory it will pick from which is tedious to say the least.
 
-The primary goal of this project is to randomly choose a genre category, then select an image from within that category while also keeping a rolling list of the seven most recent images in order to avoid seeing the same image within the span of a week.
+The purpose of this software is to randomly choose a genre category, then select an image from within that category while also keeping a rolling list of the seven most recent images in order to avoid seeing the same image within the span of a week.
 
 ## Configuration & history
 - The configuration file for weighted selection is found in `~\.config\Wallpaper_Shuffler\config.toml`
