@@ -1,0 +1,9 @@
+#Place in ~\.config\Wallpaper_Shuffler
+
+#adjust values depending on how many directories you have in the root_path
+#to a total of 1.0
+
+[weights]
+"Dir_one" = 0.65
+"dir_two" = 0.25
+"dir_three" = 0.10
