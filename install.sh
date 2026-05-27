@@ -8,7 +8,10 @@ BIN_DIR="$HOME/.local/bin"
 
 #Build binary
 echo "Building Wallpaper_Shuffler..."
-cargo build --release || { echo "Build failed. Check your Rust environment."; exit 1; }
+cargo build --release || {
+    echo "Build failed. Check your Rust environment."
+    exit 1
+}
 # Ensure dirs exist
 mkdir -p "$SERVICE_DIR" "$APP_DIR" "$BIN_DIR"
 
@@ -16,20 +19,24 @@ mkdir -p "$SERVICE_DIR" "$APP_DIR" "$BIN_DIR"
 cp "target/release/Wallpaper_Shuffler" "$BIN_DIR"
 
 # 1. Generate the service file
-cat <<EOF > "$SERVICE_DIR/Wallpaper_Shuffler.service"
+cat <<EOF >"$SERVICE_DIR/wall_shuffd.service"
 [Unit]
 Description=Trigger Wallpaper swap
 
 [Service]
 Type=oneshot
-ExecStart=$BIN_DIR/Wallpaper_Shuffler
+ExecStart=%h/.local/bin/Wallpaper_Shuffler
+StandardOutput=journal
+StandardError=journal
+
+SyslogIdentifier=wall_shuffd
 
 [Install]
 WantedBy=default.target
 EOF
 
 # 2. Generate the .desktop file
-cat <<EOF > "$APP_DIR/Wallpaper_Shuffler.desktop"
+cat <<EOF >"$APP_DIR/Wallpaper_Shuffler.desktop"
 [Desktop Entry]
 Name=Wallpaper_Shuffler
 Exec=$BIN_DIR/Wallpaper_Shuffler
@@ -40,14 +47,14 @@ Categories=Utility
 EOF
 
 #Generate the service timer
-cat <<EOF > "$SERVICE_DIR/Wallpaper_Shuffler.timer"
+cat <<EOF >"$SERVICE_DIR/wall_shuffd.timer"
 [Unit]
 Description=Schedule for wallpaper swap
 
 [Timer]
 OnCalendar=daily
 Persistent=true
-Unit=Wallpaper_Shuffler.service
+Unit=wall_shuffd.service
 
 [Install]
 WantedBy=timers.target
