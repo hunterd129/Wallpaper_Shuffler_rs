@@ -69,6 +69,6 @@ Expand the section corresponding to your desktop environment to set up compilati
 | **Alpine Linux** | `glib-dev` | `apk add glib-dev` |
 
 ## Note
-This project assumes that you placed all of your images in `~/Pictures/Wallpapers/`/`~\Pictures\Wallpapers\` but if you did not then you will need to modify main.rs on line 26: for pictures_dir to point to your location instead.
+This project assumes that you placed all of your images in `~/Pictures/Wallpapers/` or `~\Pictures\Wallpapers\` but if you did not then you will need to modify main.rs on line 26: for pictures_dir to point to your location instead.
 
 
