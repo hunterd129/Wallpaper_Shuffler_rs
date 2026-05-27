@@ -4,16 +4,21 @@ version = "1.1.0"
 edition = "2021"
 
 [dependencies]
-rand = "0.8"
 serde = { version = "1.0", features = ["derive"] }
+rand = "0.8"
 toml = "0.8"
 walkdir = "2.4"
 dirs = "5.0"
 notify-rust = "4.0"
+
+[target.'cfg(target_os = "windows")'.dependencies]
 windows = { version = "0.52", features = [
     "Win32_UI_WindowsAndMessaging",
     "Win32_Foundation",
 ] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+gio = "0.19"
 
 [profile.release]
 opt-level = 'z'

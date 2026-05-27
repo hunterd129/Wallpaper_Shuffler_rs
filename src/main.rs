@@ -1,17 +1,14 @@
-#![windows_subsystem = "windows"]
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+
+mod os;
 use std::fs;
 use std::path::PathBuf;
-use std::ffi::OsStr;
-use std::os::windows::ffi::OsStrExt; 
 use std::collections::HashMap;
 use rand::seq::SliceRandom;
 use rand::distributions::{Distribution, WeightedIndex};
 use serde::{Serialize, Deserialize};
 use walkdir::WalkDir;
-use windows::Win32::UI::WindowsAndMessaging::{
-    SystemParametersInfoW, SPI_SETDESKWALLPAPER, SPIF_UPDATEINIFILE,
-};
-use notify_rust::{Notification, Timeout};
+use notify_rust::Notification;
 
 #[derive(Serialize, Deserialize, Default)]
 struct History {
@@ -111,29 +108,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     history.recent.push(wall.clone());
     fs::write(&history_path, toml::to_string_pretty(&history)?)?;
 
-    let path_wide: Vec<u16> = OsStr::new(wall.as_os_str())
-        .encode_wide()
-        .chain(std::iter::once(0))
-        .collect();
-
-    unsafe {
-        SystemParametersInfoW(
-            SPI_SETDESKWALLPAPER,
-            0,
-            Some(path_wide.as_ptr() as *mut _),
-            SPIF_UPDATEINIFILE,
-        )?;
-    }
+    os::set_wallpaper(&wall)?;
 
     let genre = genre.file_name().unwrap_or_default().to_string_lossy();
     let file = wall.file_name().unwrap_or_default().to_string_lossy();
+    let image_path = wall.to_str().ok_or("Invalid path")?;
 
     Notification::new()
         .summary("Wallpaper Updated")
         .body(&format!("Genre: {}\nFile: {}", genre, file))
         .appname("Wallpaper Shuffler")
-        .image_path(&wall.to_str().unwrap_or_default())
-        .timeout(Timeout::Milliseconds(5000))
+        .icon("media-playlist-shuffle")
+        .image_path(image_path)
+        .timeout(5000)
         .show()?;
 
     Ok(())
