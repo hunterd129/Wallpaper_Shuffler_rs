@@ -26,8 +26,8 @@ Choose your operating system to see where configuration and history files are st
 <details>
 <summary><b>🪟 Windows Paths</b></summary>
 
-* **Configuration File (Weights):** `%\USERPROFILE%\.config\Wallpaper_Shuffler\config.toml`
-* **History Log:** `%\USERPROFILE%\.local\share\Wallpaper_Shuffler\history.toml`
+* **Configuration File (Weights):** `%USERPROFILE%\.config\Wallpaper_Shuffler\config.toml`
+* **History Log:** `%USERPROFILE%\.local\share\Wallpaper_Shuffler\history.toml`
 
 </details>
 
