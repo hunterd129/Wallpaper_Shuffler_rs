@@ -1,11 +1,26 @@
 # Wallpaper Shuffler
-This is a recursive solution to automating wallpaper shuffle while also supporting multiple directories by starting in `~\Pictures\Wallpapers`, randomly picking any of the available choices, then using walkdir to find the new wallpaper from there.
+This is a recursive solution to automating wallpaper shuffle while also supporting multiple directories by starting in `~/Pictures/Wallpapers`, randomly picking any of the available choices, then using walkdir to find the new wallpaper from there.
 
 ## About
-The primary issue with how Windows natively handles wallpaper shuffling is that it either requires you to organize your wallpapers into a lump sum, or to manually choose which directory it will pick from which is tedious to say the least.
+The primary issue with how most operating systems, desktop environments, and window managers natively handle wallpaper shuffling is that they either require you to organize your wallpapers into a single lump sum, or force you to manually choose which specific directory it will pick from—which is tedious to say the least.
 
 The purpose of this software is to randomly choose a genre category, then select an image from within that category while also keeping a rolling list of the seven most recent images in order to avoid seeing the same image within the span of a week.
 
+---
+
+## Supported Environments
+The engine dynamically sniffs out your running host environment at runtime and routes the configuration to the proper internal IPC protocol, D-Bus routine, or configuration backend.
+
+| Operating System / Desktop Environment | Engine Method / Protocol Used | Status |
+| :--- | :--- | :--- |
+| **Microsoft Windows** | Native Windows Desktop API |  Supported |
+| **GNOME Desktop** | GIO / GSettings API Sync |  Supported |
+| **KDE Plasma 6** | `qdbus6` / Scripting Engine Injection |  Supported |
+| **Niri** | Dank Material Shell IPC client (`dms ipc`) |  Supported |
+| **Hyprland** | Dank Material Shell IPC client (`dms ipc`) | in testing |
+| **MangoWC** | Dank Material Shell IPC client (`dms ipc`) | in testing |
+
+---
 ## Configuration & History
 Choose your operating system to see where configuration and history files are stored:
 
@@ -18,10 +33,10 @@ Choose your operating system to see where configuration and history files are st
 </details>
 
 <details>
-<summary><b>🐧 GNOME / Linux Paths (XDG Standard)</b></summary>
+<summary><b>🐧 Linux Paths (XDG Standard)</b></summary>
 
-* **Configuration File (Weights):** `~/.config/Wallpaper_Shuffler/config.toml`
-* **History Log:** `~/.local/share/Wallpaper_Shuffler/history.toml`
+* **Configuration File (Weights):** `$XDG_CONFIG_HOME/Wallpaper_Shuffler/config.toml`
+* **History Log:** `$XDG_DATA_HOME/Wallpaper_Shuffler/history.toml`
 
 </details>
 
@@ -46,11 +61,12 @@ Expand the section corresponding to your desktop environment to set up compilati
 </details>
 
 <details>
-<summary><b>🐧 GNOME / Linux</b></summary>
+<summary><b>🐧 Linux</b></summary>
 
 ### Compilation
 1. in the project root, run `bash install.sh`
 2. install.sh will handle the automation for you by compiling the binary, generating the systemd service and timer files and moving them to `~/.config/systemd/user/` then reloading the daemons via `systemctl --user daemon reload` and enabling the timer.
+3. by default, wallpapers will shuffle once a day. if you want it to shuffle more or less often you will need to edit the timer.
 
 </details>
 
@@ -67,8 +83,10 @@ Expand the section corresponding to your desktop environment to set up compilati
 | **Ubuntu/Debian-based** | `libglib2.0-dev` | `sudo apt install libglib2.0-dev` |
 | **openSUSE** | `glib2-devel` | `sudo zypper install glib2-devel` |
 | **Alpine Linux** | `glib-dev` | `apk add glib-dev` |
+| **Gentoo-based** | `dev-libs/glib` | `sudo emerge --ask dev-libs/glib` |
 
+* **Note**: Using install.sh assumes that you use systemd. If you use a different system then it is up to you to figure out automation.
 ## Note
-This project assumes that you placed all of your images in `~/Pictures/Wallpapers/` or `~\Pictures\Wallpapers\` but if you did not then you will need to modify main.rs on line 26: for pictures_dir to point to your location instead.
+This project assumes that you placed all of your images in `~/Pictures/Wallpapers/` or `~\Pictures\Wallpapers\` but if you did not then you will need to modify main.rs on line 26: and 27: to point to your location instead.
 
 
