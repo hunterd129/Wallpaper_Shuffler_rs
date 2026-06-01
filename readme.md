@@ -74,7 +74,7 @@ Expand the section corresponding to your desktop environment to set up compilati
 ### Requires:
 * **All Platforms:** Rust
 * **Windows:** Microsoft Visual Studio
-* **GNOME / Linux:** Development headers for GLib/GIO (`glib-2.0`). Depending on your Linux distribution, install the corresponding package:
+* **Linux:** Development headers for GLib/GIO (`glib-2.0`). Depending on your Linux distribution, install the corresponding package:
 
 | Linux Distribution | Package Name | Installation Command |
 | :--- | :--- | :--- |
