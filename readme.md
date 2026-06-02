@@ -16,8 +16,8 @@ The purpose of this software is to randomly choose a genre category, then select
 | **GNOME Desktop** | GIO / GSettings API Sync |  Supported |
 | **KDE Plasma 6** | `qdbus6` / Scripting Engine Injection |  Supported |
 | **Niri** | Dank Material Shell IPC client (`dms ipc`) |  Supported |
-| **Hyprland** | Dank Material Shell IPC client (`dms ipc`) | in testing |
-| **MangoWC** | Dank Material Shell IPC client (`dms ipc`) | in testing |
+| **Hyprland** | Dank Material Shell IPC client (`dms ipc`) | Supported |
+| **MangoWM** | Dank Material Shell IPC client (`dms ipc`) | Supported |
 
 ---
 ## Configuration & History

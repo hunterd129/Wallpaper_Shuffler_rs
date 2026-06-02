@@ -3,22 +3,23 @@ use std::env;
 
 pub mod gnome;
 pub mod kde;
-pub mod niri;
+pub mod dms;
 
 pub fn set_wallpaper(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let desktop = env::var("XDG_CURRENT_DESKTOP")
-        .unwrap_or_default()
-        .to_lowercase();
+        .unwrap_or_else(|_| "Unknown DE/WM".to_string());
 
-    if desktop.contains("kde") || desktop.contains("plasma") {
+    let desktop_lower = desktop.to_lowercase();
+
+    if desktop_lower.contains("kde") || desktop.contains("plasma") {
         kde::set_wallpaper(path)?;
-    } else if desktop.contains("gnome") || desktop.contains("ubuntu") {
+    } else if desktop_lower.contains("gnome") || desktop.contains("ubuntu") {
         gnome::set_wallpaper(path)?;
-    } else if desktop.contains("niri") {
-        niri::set_wallpaper(path)?;
+    } else if desktop_lower.contains("niri") || desktop.contains("hyprland") || desktop.contains("mango") {
+        dms::set_wallpaper(path, &desktop)?;
     } else {
         return Err(format!(
-                "Unsupported Linux DE/WM detected: '{}'. Only GNOME, KDE, and Niri are currently supported.",
+                "Unsupported Linux DE/WM detected: '{}'. Only GNOME, KDE, and DMS are currently supported.",
                 desktop
         ).into());
     }
