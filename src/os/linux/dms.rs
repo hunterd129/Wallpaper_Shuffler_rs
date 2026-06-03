@@ -16,7 +16,7 @@ pub fn set_wallpaper(path: &Path, desktop_name: &str) -> Result<(), Box<dyn std:
             .args(["ipc" , "wallpaper", "set", image_path])
             .output()?;
 
-        println!("SUCCESS: Wallpaper successfully changed for {} workspace.", desktop_name);
+        println!("SUCCESS: Wallpaper successfully changed for {} workspace.", desktop;
         println!("Image applied: {}", file_name);
     } else {
         println!("FAILURE: Currently, only dank material shell is supported.");
