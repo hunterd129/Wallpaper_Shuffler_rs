@@ -15,7 +15,7 @@ pub fn set_wallpaper(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
         kde::set_wallpaper(path)?;
     } else if desktop_lower.contains("gnome") || desktop.contains("ubuntu") {
         gnome::set_wallpaper(path)?;
-    } else if desktop_lower.contains("niri") || desktop.contains("hyprland") || desktop.contains("mango") {
+    } else if desktop_lower.contains("niri") || desktop_lower.contains("hyprland") || desktop_lower.contains("mango") {
         dms::set_wallpaper(path, &desktop)?;
     } else {
         return Err(format!(
