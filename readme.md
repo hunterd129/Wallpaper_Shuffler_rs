@@ -10,11 +10,11 @@ The purpose of this software is to randomly choose a genre category, then select
 
 ## Supported Environments
 
-| Operating System / Desktop Environment | Engine Method / Protocol Used | Status |
+| Operating System / Desktop Environment | Command / Protocol Used | Status |
 | :--- | :--- | :--- |
-| **Microsoft Windows** | Native Windows Desktop API |  Supported |
-| **GNOME Desktop** | GIO / GSettings API Sync |  Supported |
-| **KDE Plasma 6** | `qdbus6` / Scripting Engine Injection |  Supported |
+| **Microsoft Windows** | Windows Desktop API |  Supported |
+| **GNOME Desktop** | Gsetttings |  Supported |
+| **KDE Plasma 6** | `qdbus6` |  Supported |
 | **Niri** | Dank Material Shell IPC client (`dms ipc`) |  Supported |
 | **Hyprland** | Dank Material Shell IPC client (`dms ipc`) | Supported |
 | **MangoWM** | Dank Material Shell IPC client (`dms ipc`) | Supported |
@@ -70,24 +70,14 @@ Expand the section corresponding to your desktop environment to set up compilati
 2. install.sh will handle the automation for you by compiling the binary, generating the systemd service and timer files and moving them to `~/.config/systemd/user/` then reloading the daemons via `systemctl --user daemon-reload` and enabling the timer.
 3. by default, wallpapers will shuffle once a day. if you want it to shuffle more or less often you will need to edit the timer.
 
+* **Note**: Using install.sh assumes that you use systemd. If you use a different system then it is up to you to figure out automation.
 </details>
 
 ## Dependencies
 ### Requires:
 * **All Platforms:** Rust
 * **Windows:** Microsoft Visual Studio
-* **Linux:** Development headers for GLib/GIO (`glib-2.0`). Depending on your Linux distribution, install the corresponding package:
 
-| Linux Distribution | Package Name | Installation Command |
-| :--- | :--- | :--- |
-| **Fedora-based** | `glib2-devel` | `sudo dnf install glib2-devel` |
-| **Arch-based** | Built into `glib2` | *Already included with base system* |
-| **Ubuntu/Debian-based** | `libglib2.0-dev` | `sudo apt install libglib2.0-dev` |
-| **openSUSE** | `glib2-devel` | `sudo zypper install glib2-devel` |
-| **Alpine Linux** | `glib-dev` | `apk add glib-dev` |
-| **Gentoo-based** | `dev-libs/glib` | `sudo emerge --ask dev-libs/glib` |
-
-* **Note**: Using install.sh assumes that you use systemd. If you use a different system then it is up to you to figure out automation.
 ## Note
 This project assumes that you placed all of your images in `~/Pictures/Wallpapers/` or `~\Pictures\Wallpapers\` but if you did not then you will need to modify main.rs on line 26: and 27: to point to your location instead.
 
