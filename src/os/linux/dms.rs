@@ -1,6 +1,6 @@
 use std::path::Path;
 use std::process::Command;
-use which::which::Command;
+use which::which;
 
 pub fn set_wallpaper(path: &Path, desktop_name: &str) -> Result<(), Box<dyn std::error::Error>> {
     let image_path = path.to_str().ok_or("Invalid path")?;
@@ -11,7 +11,10 @@ pub fn set_wallpaper(path: &Path, desktop_name: &str) -> Result<(), Box<dyn std:
             .args(["ipc", "Wallpaper", "set", image_path])
             .output()?;
 
-        println!("SUCCESS: Wallpaper successfully changed for {} workspace.", desktop_name);
+        println!(
+            "SUCCESS: Wallpaper successfully changed for {} workspace.",
+            desktop_name
+        );
         println!("Image applied: {}", file_name);
     } else {
         println!("ERROR: Currently, only dank material shell is supported.");
