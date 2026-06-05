@@ -1,4 +1,5 @@
 #!/bin/bash
+
 #check for dependencies
 if ! pkg-config --exists glib-2.0; then
     echo -e "Missing dependencies needed to compile.\n PRESS ENTER to exit."
@@ -25,24 +26,20 @@ mkdir -p "$SERVICE_DIR" "$APP_DIR" "$BIN_DIR"
 
 mv "target/release/Wallpaper_Shuffler" "$BIN_DIR"
 
-# Generate wall_shuffd.service & .timer
+# Generate .service file
 cat <<EOF >"$SERVICE_DIR/wall_shuffd.service"
 [Unit]
 Description=Trigger Wallpaper swap
+After=graphical-session.target
 
 [Service]
 Type=oneshot
 ExecStart=%h/.local/bin/Wallpaper_Shuffler
 StandardOutput=journal
 StandardError=journal
-
-SyslogIdentifier=wall_shuffd
-
-[Install]
-WantedBy=default.target
 EOF
 
-# 2. Generate the .desktop file
+# Generate .desktop file
 cat <<EOF >"$APP_DIR/Wallpaper_Shuffler.desktop"
 [Desktop Entry]
 Name=Wallpaper_Shuffler
@@ -53,6 +50,7 @@ Terminal=false
 Categories=Utility
 EOF
 
+# Generate .timer file
 cat <<EOF >"$SERVICE_DIR/wall_shuffd.timer"
 [Unit]
 Description=Schedule for wallpaper swap
@@ -63,18 +61,7 @@ Persistent=true
 Unit=wall_shuffd.service
 
 [Install]
-WantedBy=timers.target
-EOF
-
-# Generate .desktop entry
-cat <<EOF >"$APP_DIR/Wallpaper_Shuffler.desktop"
-[Desktop Entry]
-Name=Wallpaper_Shuffler
-Exec=$BIN_DIR/Wallpaper_Shuffler
-Icon=media-playlist-shuffle
-Type=Application
-Terminal=false
-Categories=Utility
+WantedBy=graphical-session.target
 EOF
 
 # Reload and enable
