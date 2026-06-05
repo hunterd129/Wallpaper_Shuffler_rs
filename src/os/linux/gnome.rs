@@ -25,7 +25,7 @@ pub fn set_wallpaper(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
         ])
         .output()?;
 
-    println!("SUCCESS: Wallpaper successfully changed for GNOME Desktop via gsettings CLI.");
+    println!("SUCCESS: Wallpaper successfully changed for GNOME Desktop.");
     println!("Image applied: {}", file_name);
     Ok(())
 }
