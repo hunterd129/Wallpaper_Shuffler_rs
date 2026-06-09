@@ -17,14 +17,14 @@ SERVICE_DIR="$HOME/.config/systemd/user"
 APP_DIR="$HOME/.local/share/applications"
 BIN_DIR="$HOME/.local/bin"
 
-echo "Building Wallpaper_Shuffler..."
+echo "Building wall_shuff"
 cargo build --release || {
     echo "Build failed. Check your Rust environment."
     exit 1
 }
 mkdir -p "$SERVICE_DIR" "$APP_DIR" "$BIN_DIR"
 
-mv "target/release/Wallpaper_Shuffler" "$BIN_DIR"
+mv "target/release/wall_shuff" "$BIN_DIR"
 
 # Generate .service file
 cat <<EOF >"$SERVICE_DIR/wall_shuffd.service"
@@ -34,16 +34,16 @@ After=graphical-session.target
 
 [Service]
 Type=oneshot
-ExecStart=%h/.local/bin/Wallpaper_Shuffler
+ExecStart=%h/.local/bin/wall_shuff
 StandardOutput=journal
 StandardError=journal
 EOF
 
 # Generate .desktop file
-cat <<EOF >"$APP_DIR/Wallpaper_Shuffler.desktop"
+cat <<EOF >"$APP_DIR/wall_shuff.desktop"
 [Desktop Entry]
-Name=Wallpaper_Shuffler
-Exec=$BIN_DIR/Wallpaper_Shuffler
+Name=wall_shuff
+Exec=$BIN_DIR/wall_shuff
 Icon=media-playlist-shuffle
 Type=Application
 Terminal=false
@@ -66,4 +66,4 @@ EOF
 
 # Reload and enable
 systemctl --user daemon-reload
-systemctl --user enable --now Wallpaper_Shuffler.timer
+systemctl --user enable --now wall_shuff.timer

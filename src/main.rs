@@ -25,9 +25,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let home_dir = dirs::home_dir().ok_or("Could not find Home")?;
     let pictures_dir = dirs::picture_dir().ok_or("Could not find Pictures")?;
     let root_path = pictures_dir.join("Wallpapers");
-    let app_root = home_dir.join(".config/Wallpaper_Shuffler");
+    let app_root = home_dir.join(".config/wall_shuff");
     let config_path = app_root.join("config.toml");
-    let history_root = home_dir.join(".local/share/Wallpaper_Shuffler");
+    let history_root = home_dir.join(".local/share/wall_shuff");
     let history_path = history_root.join("history.toml");
 
     if !app_root.exists() {
@@ -117,7 +117,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Notification::new()
         .summary("Wallpaper Updated")
         .body(&format!("Genre: {}\nFile: {}", genre, file))
-        .appname("Wallpaper Shuffler")
+        .appname("wall_shuff")
         .icon("media-playlist-shuffle")
         .image_path(image_path)
         .timeout(5000)
