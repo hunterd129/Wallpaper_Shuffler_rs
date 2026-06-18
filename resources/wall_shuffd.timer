@@ -1,0 +1,10 @@
+[Unit]
+Description=Schedule for wallpaper swap
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+Unit=wall_shuffd.service
+
+[Install]
+WantedBy=graphical-session.target

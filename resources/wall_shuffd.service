@@ -1,0 +1,10 @@
+[Unit]
+Description=Trigger Wallpaper swap
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/wall_shuff
+StandardOutput=journal
+StandardError=journal
+
