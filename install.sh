@@ -1,12 +1,6 @@
 #!/bin/bash
 
 #check for dependencies
-if ! pkg-config --exists glib-2.0; then
-    echo -e "Missing dependencies needed to compile.\n PRESS ENTER to exit."
-    read -r
-    exit 1
-fi
-
 if ! command -v rustc &>/dev/null; then
     echo -e "missing dependencies needed to compile.\n ensure rust is installed.\n PRESS ENTER to exit."
     read -r
@@ -25,44 +19,9 @@ cargo build --release || {
 mkdir -p "$SERVICE_DIR" "$APP_DIR" "$BIN_DIR"
 
 mv "target/release/wall_shuff" "$BIN_DIR"
-
-# Generate .service file
-cat <<EOF >"$SERVICE_DIR/wall_shuffd.service"
-[Unit]
-Description=Trigger Wallpaper swap
-After=graphical-session.target
-
-[Service]
-Type=oneshot
-ExecStart=%h/.local/bin/wall_shuff
-StandardOutput=journal
-StandardError=journal
-EOF
-
-# Generate .desktop file
-cat <<EOF >"$APP_DIR/wall_shuff.desktop"
-[Desktop Entry]
-Name=wall_shuff
-Exec=$BIN_DIR/wall_shuff
-Icon=media-playlist-shuffle
-Type=Application
-Terminal=false
-Categories=Utility
-EOF
-
-# Generate .timer file
-cat <<EOF >"$SERVICE_DIR/wall_shuffd.timer"
-[Unit]
-Description=Schedule for wallpaper swap
-
-[Timer]
-OnCalendar=daily
-Persistent=true
-Unit=wall_shuffd.service
-
-[Install]
-WantedBy=graphical-session.target
-EOF
+mv "resources/wall_shuffd.timer" "$SERVICE_DIR"
+mv "resources/wall_shuffd.service" "$SERVICE_DIR"
+mv "resources/wall_shuff.desktop" "$APP_DIR"
 
 # Reload and enable
 systemctl --user daemon-reload
