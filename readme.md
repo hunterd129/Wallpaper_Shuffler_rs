@@ -48,18 +48,9 @@ Expand the section corresponding to your desktop environment to set up compilati
 <summary><b>🪟 Windows Setup (Task Scheduler)</b></summary>
 
 ### Compilation
-1. Open PowerShell or Command Prompt in the project directory.
-2. Compile the release binary:
-   ```bash
-   cargo build --release
-   ```
-
-
-3. Open Task Scheduler and create a basic task
-4. Set the action to start a program and point it to the binary in `Wallpaper_Shuffler\target\release\Wallpaper_Shuffler.exe`
-5. Set the interval the your preference. (e.g. hourly, daily, etc)
-6. set it to run as soon as possible if scheduled time was missed in case your PC was sleeping at the time.
-
+1. run `. install.ps1`.
+2. install.ps1 will compile the source code and create a basic task on task scheduler.
+3. by default, the task will be run daily at 00:00 or as soon as possible if scheduled time was missed.
 </details>
 
 <details>
