@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=wall_shuff
-Exec=$BIN_DIR/wall_shuff
-Icon=media-playlist-shuffle
-Type=Application
-Terminal=false
-Categories=Utility
