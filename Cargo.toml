@@ -1,6 +1,6 @@
 [package]
 name = "wall_shuff"
-version = "1.2.5"
+version = "1.2.7"
 edition = "2021"
 
 [dependencies]

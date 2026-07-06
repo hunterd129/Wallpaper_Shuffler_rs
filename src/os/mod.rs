@@ -4,6 +4,6 @@ mod windows;
 pub use self::windows::set_wallpaper;
 
 #[cfg(target_os = "linux")]
-mod linux;
+pub mod linux;
 #[cfg(target_os = "linux")]
 pub use self::linux::set_wallpaper;

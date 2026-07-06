@@ -1,11 +1,12 @@
-use std::path::Path;
+use crate::config::AppConfig;
 use std::ffi::OsStr;
 use std::os::windows::ffi::OsStrExt;
+use std::path::Path;
 use windows::Win32::UI::WindowsAndMessaging::{
-    SystemParametersInfoW, SPI_SETDESKWALLPAPER, SPIF_UPDATEINIFILE,
+    SystemParametersInfoW, SPIF_UPDATEINIFILE, SPI_SETDESKWALLPAPER,
 };
 
-pub fn set_wallpaper(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+pub fn set_wallpaper(path: &Path, _config: &AppConfig) -> Result<(), Box<dyn std::error::Error>> {
     let path_wide: Vec<u16> = OsStr::new(path.as_os_str())
         .encode_wide()
         .chain(std::iter::once(0))
