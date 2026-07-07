@@ -1,7 +1,7 @@
 use crate::config::AppConfig;
 use std::path::Path;
 use std::process::Command;
-use which::which; // Import config for architectural parity
+use which::which;
 
 pub fn set_wallpaper(
     path: &Path,
@@ -12,7 +12,6 @@ pub fn set_wallpaper(
     let file_name = path.file_name().unwrap_or_default().to_string_lossy();
 
     if which("dms").is_ok() {
-        // Keeps your exact verified IPC execution flags safe!
         Command::new("dms")
             .args(["ipc", "Wallpaper", "set", image_path])
             .output()?;
