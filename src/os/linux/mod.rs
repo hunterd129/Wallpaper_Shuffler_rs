@@ -28,6 +28,13 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
     }
 
     match config.wm_backend.as_str() {
+        "noctalia" => {
+           Command::new("noctalia")
+               .args(["msg", "wallpaper-set", image_path])
+               .output()?;
+            println!("SUCCESS: Noctalia updated to {}", image_path);
+        }
+
         "swaybg" => {
             let old_pids: Vec<String> =
                 String::from_utf8_lossy(&Command::new("pidof").arg("swaybg").output()?.stdout)
@@ -37,6 +44,9 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
 
             Command::new("swaybg")
                 .args(["-i", image_path, "-m", "fill"])
+                .stdin(std::process::Stdio::null())
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
                 .spawn()?;
 
             std::thread::sleep(std::time::Duration::from_millis(150));
@@ -44,9 +54,8 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
                 let _ = Command::new("kill").arg(&pid).output();
             }
             println!("SUCCESS: Swaybg refreshed to {}", image_path);
-        }
-        "swww" => {
-            Command::new("swww")
+        }"awww" => {
+            Command::new("awww")
                 .args(["img", image_path, "--transition-type", "center"])
                 .output()?;
             println!("SUCCESS: Swww updated to {}", image_path);

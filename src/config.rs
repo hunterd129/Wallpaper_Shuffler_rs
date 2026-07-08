@@ -57,8 +57,9 @@ pub fn load_or_create_config(config_path: &Path, available_genres: &[PathBuf]) -
         println!("Please select your background controller:");
         println!("  [1] Dank Material Shell (dms)");
         println!("  [2] swaybg (Wayland)");
-        println!("  [3] swww (Animated/Wayland)");
-        print!("Enter choice (1-3): ");
+        println!("  [3] awww (Animated/Wayland)");
+        println!("  [4] Noctalia");
+        print!("Enter choice (1-4): ");
         io::stdout().flush().unwrap();
 
         let mut choice = String::new();
@@ -66,8 +67,9 @@ pub fn load_or_create_config(config_path: &Path, available_genres: &[PathBuf]) -
 
         match choice.trim() {
             "2" => "swaybg".to_string(),
-            "3" => "swww".to_string(),
+            "3" => "awww".to_string(),
             "1" => "dms".to_string(),
+            "4" => "noctalia (V5)".to_string(),
             _ => "dms".to_string(),
         }
     };
@@ -95,12 +97,12 @@ pub fn load_or_create_config(config_path: &Path, available_genres: &[PathBuf]) -
 
     let toml_string = format!(
         "# Wallpaper Shuffler Configuration\n\n\
-         # Note: wm_backend only applies to custom Window Managers (Hyprland, Niri, MangoWM, etc.)\n\
-         # Supported choices: \"dms\", \"swaybg\", \"swww\"\n\
+         # Note: wm_backend only applies to wayland compositors (Hyprland, Niri, MangoWM, etc.)\n\
+         # Supported choices: \"dms\", \"noctalia\", \"swaybg\", \"awww\"\n\
          wm_backend = \"{}\"\n\
          history_limit = {}\n\n\
          [kde]\n\
-         # Automatically sync the login/lock screen background with your desktop wallpaper\n\
+         # Automatically sync the lock screen background with your desktop wallpaper\n\
          lockscreen_support = true\n\n\
          [weights]\n\
          # Discovered background folders. Increase the value to make a choice more frequent.\n\
