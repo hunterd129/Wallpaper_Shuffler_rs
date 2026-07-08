@@ -13,7 +13,7 @@ pub fn set_wallpaper(
 
     if which("dms").is_ok() {
         Command::new("dms")
-            .args(["ipc", "Wallpaper", "set", image_path])
+            .args(["ipc", "call", "Wallpaper", "set", image_path])
             .output()?;
 
         println!(
@@ -22,7 +22,7 @@ pub fn set_wallpaper(
         );
         println!("Image applied: {}", file_name);
     } else {
-        println!("ERROR: Currently, only dank material shell is supported.");
+        println!("ERROR: currently, only dms, noctalia, awww, and swaybg are supported for wayland compositors");
     }
 
     Ok(())
