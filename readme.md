@@ -15,9 +15,9 @@ The purpose of this software is to randomly choose a genre category, then select
 | **Microsoft Windows** | Windows Desktop API |  Supported |
 | **GNOME Desktop** | Gsetttings |  Supported |
 | **KDE Plasma 6** | `qdbus6` |  Supported |
-| **Niri** | Dank Material Shell IPC client (`dms ipc`) |  Supported |
-| **Hyprland** | Dank Material Shell IPC client (`dms ipc`) | Supported |
-| **MangoWM** | Dank Material Shell IPC client (`dms ipc`) | Supported |
+| **Niri** | DMS, Noctalia, Swaybg, awww  |  Supported |
+| **Hyprland** | DMS, Noctalia, Swaybg, awww | Supported |
+| **MangoWM** | DMS, Noctalia, Swaybg, awww | Supported |
 
 ---
 ## Configuration & History
