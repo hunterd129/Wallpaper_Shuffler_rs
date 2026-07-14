@@ -7,7 +7,8 @@ use std::path::{Path, PathBuf};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AppConfig {
-    pub wm_backend: String,
+    pub de_backend: String,
+    pub wc_daemon: String,
     pub history_limit: usize,
 
     #[serde(default)]
@@ -36,12 +37,27 @@ impl Default for KdeConfig {
 }
 
 pub fn load_or_create_config(config_path: &Path, available_genres: &[PathBuf]) -> AppConfig {
-    let desktop = env::var("XDG_CURRENT_DESKTOP")
-        .unwrap_or_else(|_| "unknown".to_string())
-        .to_lowercase();
+    #[cfg(target_os = "windows")]
+    let (detected_de, is_major_de) = ("Win32 API".to_string(), true);
 
-    let is_major_de =
-        desktop.contains("gnome") || desktop.contains("kde") || desktop.contains("plasma");
+    #[cfg(not(target_os = "windows"))]
+    let (detected_de, is_major_de) = {
+        let desktop = env::var("XDG_CURRENT_DESKTOP")
+            .unwrap_or_else(|_| "unknown".to_string())
+            .to_lowercase();
+
+        let is_de =
+            desktop.contains("gnome") || desktop.contains("kde") || desktop.contains("plasma");
+        let de_name = if desktop.contains("kde") || desktop.contains("plasma") {
+            "kde".to_string()
+        } else if desktop.contains("gnome") {
+            "gnome".to_string()
+        } else {
+            "N/A".to_string()
+        };
+
+        (de_name, is_de)
+    };
 
     if config_path.exists() {
         if let Ok(content) = fs::read_to_string(config_path) {
@@ -51,10 +67,10 @@ pub fn load_or_create_config(config_path: &Path, available_genres: &[PathBuf]) -
         }
     }
 
-    let selected_backend = if is_major_de {
-        "native".to_string()
+    let selected_daemon = if is_major_de {
+        "N/A".to_string()
     } else {
-        println!("Please select your background controller:");
+        println!("Please select your background controller daemon (WC Daemon):");
         println!("  [1] Dank Material Shell (dms)");
         println!("  [2] swaybg (Wayland)");
         println!("  [3] awww (Animated/Wayland)");
@@ -69,8 +85,8 @@ pub fn load_or_create_config(config_path: &Path, available_genres: &[PathBuf]) -
             "2" => "swaybg".to_string(),
             "3" => "awww".to_string(),
             "1" => "dms".to_string(),
-            "4" => "noctalia (V5)".to_string(),
-            _ => "dms".to_string(),
+            "4" => "noctalia".to_string(),
+            _ => "awww".to_string(),
         }
     };
 
@@ -81,13 +97,13 @@ pub fn load_or_create_config(config_path: &Path, available_genres: &[PathBuf]) -
         if let Some(filename) = path.file_name() {
             let dir_name = filename.to_string_lossy().into_owned();
             default_weights.insert(dir_name.clone(), 1.0);
-
             weights_toml_buffer.push_str(&format!("\"{}\" = 1.0\n", dir_name));
         }
     }
 
     let new_config = AppConfig {
-        wm_backend: selected_backend,
+        de_backend: detected_de,
+        wc_daemon: selected_daemon,
         history_limit: 7,
         weights: default_weights,
         kde: KdeConfig {
@@ -97,18 +113,20 @@ pub fn load_or_create_config(config_path: &Path, available_genres: &[PathBuf]) -
 
     let toml_string = format!(
         "# Wallpaper Shuffler Configuration\n\n\
-         # Note: wm_backend only applies to wayland compositors (Hyprland, Niri, MangoWM, etc.)\n\
-         # Supported choices: \"dms\", \"noctalia\", \"swaybg\", \"awww\"\n\
-         wm_backend = \"{}\"\n\
+         # Automatically detected desktop environment (e.g. \"Win32 API\", \"kde\", \"gnome\", \"N/A\")\n\
+         de_backend = \"{}\"\n\n\
+         # Daemon target for wayland compositors. Ignored if a major DE is active.\n\
+         # Supported choices: \"dms\", \"noctalia\", \"swaybg\", \"awww\", \"N/A\"\n\
+         wc_daemon = \"{}\"\n\n\
          history_limit = {}\n\n\
          [kde]\n\
-         # Automatically sync the lock screen background with your desktop wallpaper\n\
+         # Sync the lock screen background with your desktop background\n\
          lockscreen_support = true\n\n\
          [weights]\n\
          # Discovered background folders. Increase the value to make a choice more frequent.\n\
          # A weight of 0 will completely disable a folder from rolling.\n\
          {}",
-        new_config.wm_backend, new_config.history_limit, weights_toml_buffer
+        new_config.de_backend, new_config.wc_daemon, new_config.history_limit, weights_toml_buffer
     );
 
     if let Some(parent) = config_path.parent() {

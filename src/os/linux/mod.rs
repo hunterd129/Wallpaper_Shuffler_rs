@@ -27,11 +27,11 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
         return gnome::set_wallpaper(path);
     }
 
-    match config.wm_backend.as_str() {
+    match config.wc_daemon.as_str() {
         "noctalia" => {
-           Command::new("noctalia")
-               .args(["msg", "wallpaper-set", image_path])
-               .output()?;
+            Command::new("noctalia")
+                .args(["msg", "wallpaper-set", image_path])
+                .output()?;
             println!("SUCCESS: Noctalia updated to {}", image_path);
         }
 
@@ -54,7 +54,8 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
                 let _ = Command::new("kill").arg(&pid).output();
             }
             println!("SUCCESS: Swaybg refreshed to {}", image_path);
-        }"awww" => {
+        }
+        "awww" => {
             Command::new("awww")
                 .args(["img", image_path, "--transition-type", "center"])
                 .output()?;

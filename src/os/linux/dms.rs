@@ -22,7 +22,7 @@ pub fn set_wallpaper(
         );
         println!("Image applied: {}", file_name);
     } else {
-        println!("ERROR: currently, only dms, noctalia, awww, and swaybg are supported for wayland compositors");
+        println!("ERROR: Currently, only DMS, Noctalia, awww, and swaybg are supported.");
     }
 
     Ok(())
