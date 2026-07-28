@@ -1,4 +1,5 @@
 use crate::config::AppConfig;
+use notify_rust::Notification;
 use std::path::Path;
 
 pub mod gnome;
@@ -7,7 +8,7 @@ pub mod wc_daemon;
 
 pub fn get_config_path() -> std::path::PathBuf {
     dirs::config_dir()
-        .unwrap_or_else(|| std::path::PathBuf::from("/home/hunter/.config"))
+        .unwrap_or_else(|| std::path::PathBuf::from("~/.config"))
         .join("wall_shuff/config.toml")
 }
 
@@ -24,5 +25,22 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
         return gnome::set_wallpaper(path);
     }
 
-    wc_daemon::set_wallpaper(path, config)
+    if !config.wc_daemon.is_empty() {
+        return wc_daemon::set_wallpaper(path, config);
+    }
+
+    let err_msg = format!(
+        "Unsupported or unrecognized desktop environment: '{}'. Please configure 'wc_daemon' in config.toml.",
+        desktop
+    );
+
+    let _ = Notification::new()
+        .summary("Wall Shuff: Error")
+        .body(&err_msg)
+        .appname("Wall Shuff")
+        .icon("dialog-error")
+        .timeout(5000)
+        .show();
+
+    Err(err_msg.into())
 }

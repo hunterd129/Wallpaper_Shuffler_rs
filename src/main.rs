@@ -3,7 +3,6 @@
 mod config;
 mod os;
 
-use notify_rust::Notification;
 use rand::distributions::{Distribution, WeightedIndex};
 use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
@@ -109,27 +108,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     fs::write(&history_path, toml::to_string_pretty(&history)?)?;
 
     os::set_wallpaper(&wall, &app_config)?;
-
-    let genre_name = genre.file_name().unwrap_or_default().to_string_lossy();
-    let file_name = wall.file_name().unwrap_or_default().to_string_lossy();
-
-    let absolute_image_path = fs::canonicalize(&wall)?;
-    let image_path_str = absolute_image_path.to_str().ok_or("Invalid path")?;
-
-    #[cfg(target_os = "linux")]
-    let body_string = format!("<b>Genre:</b> {} | <b>File:</b> {}", genre_name, file_name);
-
-    #[cfg(not(target_os = "linux"))]
-    let body_string = format!("Genre: {}\nFile: {}", genre_name, file_name);
-
-    Notification::new()
-        .summary("Wallpaper Updated")
-        .body(&body_string)
-        .appname("Wall Shuff")
-        .icon("media-playlist-shuffle")
-        .image_path(image_path_str)
-        .timeout(5000)
-        .show()?;
 
     Ok(())
 }

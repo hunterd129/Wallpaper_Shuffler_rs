@@ -1,12 +1,13 @@
+use notify_rust::Notification;
 use std::path::Path;
 use std::process::Command;
 
 pub fn set_wallpaper(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
-    let image_path = path.to_str().ok_or("Invalid path")?;
-    let file_name = path.file_name().unwrap_or_default().to_string_lossy();
+    let abs_path = std::fs::canonicalize(path)?;
+    let image_path = abs_path.to_str().ok_or("Invalid path")?;
 
-    let set_wall = |key: &str| -> std::io::Result<()> {
-        Command::new("gsettings")
+    let set_wall = |key: &str| -> Result<(), Box<dyn std::error::Error>> {
+        let status = Command::new("gsettings")
             .args([
                 "set",
                 "org.gnome.desktop.background",
@@ -14,13 +15,51 @@ pub fn set_wallpaper(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
                 &format!("file://{}", image_path),
             ])
             .status()?;
+
+        if !status.success() {
+            return Err(format!("gsettings failed to set {}", key).into());
+        }
         Ok(())
     };
 
-    set_wall("picture-uri")?;
-    set_wall("picture-uri-dark")?;
+    if let Err(e) = set_wall("picture-uri").and_then(|_| set_wall("picture-uri-dark")) {
+        let _ = Notification::new()
+            .summary("Wall Shuff: Error")
+            .body(&format!("GNOME Backend Error: {}", e))
+            .appname("Wall Shuff")
+            .icon("dialog-error")
+            .timeout(5000)
+            .show();
 
-    println!("SUCCESS: Wallpaper successfully changed for GNOME Desktop.");
-    println!("Image applied: {}", file_name);
+        return Err(e);
+    }
+
+    let genre_name = path
+        .parent()
+        .and_then(|p| p.file_name())
+        .unwrap_or_default()
+        .to_string_lossy();
+    let file_name = path.file_name().unwrap_or_default().to_string_lossy();
+
+    let body_string = format!("<b>Genre:</b> {} | <b>File:</b> {}", genre_name, file_name);
+
+    let handle = Notification::new()
+        .summary("Wallpaper Updated")
+        .body(&body_string)
+        .appname("Wall Shuff")
+        .icon("media-playlist-shuffle")
+        .image_path(image_path)
+        .action("reshuffle", "Reshuffle")
+        .timeout(5000)
+        .show()?;
+
+    handle.wait_for_action(|action| {
+        if action == "reshuffle" {
+            if let Ok(exe) = std::env::current_exe() {
+                let _ = Command::new(exe).spawn();
+            }
+        }
+    });
+
     Ok(())
 }
