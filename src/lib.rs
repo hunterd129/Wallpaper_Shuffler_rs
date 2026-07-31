@@ -26,7 +26,6 @@ fn get_wallpaper_genres_list(root_path: &Path) -> Result<Vec<PathBuf>, Box<dyn s
     Ok(genres)
 }
 
-/// Core function to select and apply a new wallpaper
 pub fn run_shuffle() -> Result<(), Box<dyn std::error::Error>> {
     let home_dir = dirs::home_dir().ok_or("Could not find Home")?;
     let pictures_dir = dirs::picture_dir().ok_or("Could not find Pictures")?;

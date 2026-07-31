@@ -1,42 +1,66 @@
-use notify_rust::Notification;
 use std::error::Error;
 
-fn show_reshuffle_notification() -> Result<(), Box<dyn Error>> {
-    // 1. Run the shuffle logic using our shared lib!
-    wall_shuff::run_shuffle()?;
+struct WallShuffTray;
 
-    // 2. Spawn the notification WITH the interactive action button
-    // Note: Since wall_shuffd is a long-running daemon, calling wait_for_action()
-    // here won't hang systemd or block CLI runs!
-    let handle = Notification::new()
-        .summary("Wallpaper Updated")
-        .body("Click reshuffle to pick another wallpaper")
-        .appname("Wall Shuff")
-        .icon("media-playlist-shuffle")
-        .action("reshuffle", "Reshuffle")
-        .timeout(5000)
-        .show()?;
+impl ksni::Tray for WallShuffTray {
+    fn id(&self) -> String {
+        "com.github.wall_shuff".into()
+    }
 
-    // Wait for the action in this thread. When clicked, it recursively triggers a new shuffle!
-    handle.wait_for_action(|action| {
-        if action == "reshuffle" {
-            // Trigger the next notification & shuffle cycle
-            let _ = show_reshuffle_notification();
-        }
-    });
+    fn category(&self) -> ksni::Category {
+        ksni::Category::ApplicationStatus
+    }
 
-    Ok(())
+    fn icon_name(&self) -> String {
+        "media-playlist-shuffle".into()
+    }
+
+    fn title(&self) -> String {
+        "Wall Shuff".into()
+    }
+
+    fn menu(&self) -> Vec<ksni::MenuItem<Self>> {
+        use ksni::menu::*;
+        vec![
+            StandardItem {
+                label: "Shuffle Now".into(),
+                activate: Box::new(|_| {
+                    if let Err(e) = wall_shuff::run_shuffle() {
+                        eprintln!("Error shuffling: {}", e);
+                    }
+                }),
+                ..Default::default()
+            }
+            .into(),
+            MenuItem::Separator,
+            StandardItem {
+                label: "Quit".into(),
+                activate: Box::new(|_| {
+                    std::process::exit(0);
+                }),
+                ..Default::default()
+            }
+            .into(),
+        ]
+    }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    println!("Starting wall_shuffd daemon...");
+    println!("Starting wall_shuffd tray daemon...");
 
-    // Optionally run once on daemon startup
-    if let Err(e) = show_reshuffle_notification() {
-        eprintln!("Error showing initial notification: {}", e);
-    }
+    let service = ksni::TrayService::new(WallShuffTray);
+    let _handle = service.handle();
 
-    // Keep the main thread alive to ensure systemd sees Type=simple as running
+    service.spawn();
+
+    let _ = notify_rust::Notification::new()
+        .summary("Wall Shuff")
+        .body("Daemon started and sitting in system tray.")
+        .appname("Wall Shuff")
+        .icon("media-playlist-shuffle")
+        .timeout(3000)
+        .show();
+
     loop {
         std::thread::sleep(std::time::Duration::from_secs(3600));
     }
