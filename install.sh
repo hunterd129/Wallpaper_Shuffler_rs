@@ -19,7 +19,7 @@ cargo build --release || {
 mkdir -p "$SERVICE_DIR" "$APP_DIR" "$BIN_DIR"
 
 mv "target/release/wall_shuff" "$BIN_DIR/"
-mv "resources/wall_shuffd.timer" "resources/wall_shuffd.service" "$SERVICE_DIR/"
+mv "resources/wall_shuff.timer" "resources/wall_shuff.service" "resources/wall_shuffd.service" "$SERVICE_DIR/"
 mv "resources/wall_shuff.desktop" "$APP_DIR/"
 
 systemctl --user daemon-reload

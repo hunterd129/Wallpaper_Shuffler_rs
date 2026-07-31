@@ -108,7 +108,7 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
 
     let body_string = format!("<b>Genre:</b> {} | <b>File:</b> {}", genre_name, file_name);
 
-    let handle = Notification::new()
+    Notification::new()
         .summary("Wallpaper Updated")
         .body(&body_string)
         .appname("Wall Shuff")
