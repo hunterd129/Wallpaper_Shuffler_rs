@@ -114,17 +114,8 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
         .appname("Wall Shuff")
         .icon("media-playlist-shuffle")
         .image_path(image_path)
-        .action("reshuffle", "Reshuffle")
         .timeout(5000)
         .show()?;
-
-    handle.wait_for_action(|action| {
-        if action == "reshuffle" {
-            if let Ok(exe) = std::env::current_exe() {
-                let _ = Command::new(exe).spawn();
-            }
-        }
-    });
 
     Ok(())
 }

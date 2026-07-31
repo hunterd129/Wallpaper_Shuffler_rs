@@ -43,23 +43,14 @@ pub fn set_wallpaper(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
 
     let body_string = format!("<b>Genre:</b> {} | <b>File:</b> {}", genre_name, file_name);
 
-    let handle = Notification::new()
+    Notification::new()
         .summary("Wallpaper Updated")
         .body(&body_string)
         .appname("Wall Shuff")
         .icon("media-playlist-shuffle")
         .image_path(image_path)
-        .action("reshuffle", "Reshuffle")
         .timeout(5000)
         .show()?;
-
-    handle.wait_for_action(|action| {
-        if action == "reshuffle" {
-            if let Ok(exe) = std::env::current_exe() {
-                let _ = Command::new(exe).spawn();
-            }
-        }
-    });
 
     Ok(())
 }
