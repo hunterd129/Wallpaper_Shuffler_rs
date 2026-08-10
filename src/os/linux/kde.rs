@@ -18,8 +18,11 @@ fn build_plasma_script(image_path: &str) -> String {
     )
 }
 
-// Helper to try running a command with a primary binary, falling back to a secondary if missing
-fn run_command_with_fallback(primary: &str, fallback: &str, args: &[&str]) -> Result<std::process::Output, std::io::Error> {
+fn run_cmd_with_fallbck(
+    primary: &str,
+    fallback: &str,
+    args: &[&str],
+) -> Result<std::process::Output, std::io::Error> {
     match Command::new(primary).args(args).output() {
         Ok(output) => Ok(output),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
@@ -41,8 +44,7 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
         &script,
     ];
 
-    // Try qdbus6 first, fall back to qdbus (Plasma 5 / distro aliases)
-    let output = run_command_with_fallback("qdbus6", "qdbus", &qdbus_args)?;
+    let output = run_cmd_with_fallbck("qdbus6", "qdbus", &qdbus_args)?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -74,7 +76,7 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
             &format!("file://{}", image_path),
         ];
 
-        let lock_res = run_command_with_fallback("kwriteconfig6", "kwriteconfig5", &lock_args);
+        let lock_res = run_cmd_with_fallbck("kwriteconfig6", "kwriteconfig5", &lock_args);
         if let Err(e) = lock_res {
             eprintln!("Warning: Failed to update KDE lockscreen: {}", e);
         }

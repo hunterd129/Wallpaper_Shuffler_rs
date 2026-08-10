@@ -1,7 +1,10 @@
+#[cfg(target_os = "linux")]
 use std::error::Error;
 
+#[cfg(target_os = "linux")]
 struct WallShuffTray;
 
+#[cfg(target_os = "linux")]
 impl ksni::Tray for WallShuffTray {
     fn id(&self) -> String {
         "com.github.wall_shuff".into()
@@ -45,6 +48,7 @@ impl ksni::Tray for WallShuffTray {
     }
 }
 
+#[cfg(target_os = "linux")]
 fn main() -> Result<(), Box<dyn Error>> {
     println!("Starting wall_shuffd tray daemon...");
 
@@ -64,4 +68,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     loop {
         std::thread::sleep(std::time::Duration::from_secs(3600));
     }
+}
+
+#[cfg(not(target_os = "linux"))]
+fn main() {
+    eprintln!("wall_shuffd is only supported on Linux.");
 }

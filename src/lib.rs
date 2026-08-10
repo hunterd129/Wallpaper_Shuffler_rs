@@ -33,10 +33,14 @@ pub fn run_shuffle() -> Result<(), Box<dyn std::error::Error>> {
 
     let genres = get_wallpaper_genres_list(&root_path)?;
 
-    let config_path = os::linux::get_config_path();
+    let config_path = home_dir
+        .join(".config")
+        .join("wall_shuff")
+        .join("config.toml");
+
     let app_config = config::load_or_create_config(&config_path, &genres);
 
-    let history_root = home_dir.join(".local/share/wall_shuff");
+    let history_root = home_dir.join(".local").join("share").join("wall_shuff");
     let history_path = history_root.join("history.toml");
 
     if !history_root.exists() {
