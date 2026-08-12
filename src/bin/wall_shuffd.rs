@@ -50,20 +50,10 @@ impl ksni::Tray for WallShuffTray {
 
 #[cfg(target_os = "linux")]
 fn main() -> Result<(), Box<dyn Error>> {
-    println!("Starting wall_shuffd tray daemon...");
-
     let service = ksni::TrayService::new(WallShuffTray);
     let _handle = service.handle();
 
     service.spawn();
-
-    let _ = notify_rust::Notification::new()
-        .summary("Wall Shuff")
-        .body("Daemon started and sitting in system tray.")
-        .appname("Wall Shuff")
-        .icon("media-playlist-shuffle")
-        .timeout(3000)
-        .show();
 
     loop {
         std::thread::sleep(std::time::Duration::from_secs(3600));
