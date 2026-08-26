@@ -76,7 +76,7 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
         "dms" => {
             if which("dms").is_ok() {
                 let output = Command::new("dms")
-                    .args(["ipc", "call", "Wallpaper", "set", image_path])
+                    .args(["ipc", "wallpaper", "set", image_path])
                     .output()?;
 
                 if !output.status.success() {
