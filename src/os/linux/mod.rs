@@ -13,25 +13,37 @@ pub fn get_config_path() -> std::path::PathBuf {
 }
 
 pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std::error::Error>> {
-    let desktop = std::env::var("XDG_CURRENT_DESKTOP")
+    let desktop_env = std::env::var("XDG_CURRENT_DESKTOP")
         .unwrap_or_else(|_| "unknown".to_string())
         .to_lowercase();
 
-    if desktop.contains("kde") || desktop.contains("plasma") {
-        return kde::set_wallpaper(path, config);
-    }
+    let backend = match config.de_backend.to_lowercase().as_str() {
+        "auto" => {
+            if desktop_env.contains("kde") || desktop_env.contains("plasma") {
+                "kde"
+            } else if desktop_env.contains("gnome") {
+                "gnome"
+            } else {
+                "wc_daemon"
+            }
+        }
+        "gnome" => "gnome",
+        "kde" | "plasma" => "kde",
+        _ => "wc_daemon",
+    };
 
-    if desktop.contains("gnome") {
-        return gnome::set_wallpaper(path);
-    }
-
-    if !config.wc_daemon.is_empty() {
-        return wc_daemon::set_wallpaper(path, config);
+    match backend {
+        "kde" => return kde::set_wallpaper(path, config),
+        "gnome" => return gnome::set_wallpaper(path),
+        "wc_daemon" if !config.wc_daemon.is_empty() && config.wc_daemon != "N/A" => {
+            return wc_daemon::set_wallpaper(path, config);
+        }
+        _ => {}
     }
 
     let err_msg = format!(
-        "Unsupported or unrecognized desktop environment: '{}'. Please configure 'wc_daemon' in config.toml.",
-        desktop
+        "Failed to route wallpaper change. Desktop: '{}', de_backend: '{}', wc_daemon: '{}'.",
+        desktop_env, config.de_backend, config.wc_daemon
     );
 
     let _ = Notification::new()

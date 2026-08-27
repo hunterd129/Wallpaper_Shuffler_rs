@@ -41,23 +41,15 @@ pub fn load_or_create_config(config_path: &Path, available_genres: &[PathBuf]) -
     let (detected_de, is_major_de) = ("Win32 API".to_string(), true);
 
     #[cfg(not(target_os = "windows"))]
-    let (detected_de, is_major_de) = {
-        let desktop = env::var("XDG_CURRENT_DESKTOP")
-            .unwrap_or_else(|_| "unknown".to_string())
-            .to_lowercase();
+let (detected_de, is_major_de) = {
+    let desktop = env::var("XDG_CURRENT_DESKTOP")
+        .unwrap_or_else(|_| "unknown".to_string())
+        .to_lowercase();
 
-        let is_de =
-            desktop.contains("gnome") || desktop.contains("kde") || desktop.contains("plasma");
-        let de_name = if desktop.contains("kde") || desktop.contains("plasma") {
-            "kde".to_string()
-        } else if desktop.contains("gnome") {
-            "gnome".to_string()
-        } else {
-            "N/A".to_string()
-        };
+    let is_de = desktop.contains("gnome") || desktop.contains("kde") || desktop.contains("plasma");
 
-        (de_name, is_de)
-    };
+    ("auto".to_string(), is_de)
+};
 
     if config_path.exists() {
         if let Ok(content) = fs::read_to_string(config_path) {
@@ -111,11 +103,12 @@ pub fn load_or_create_config(config_path: &Path, available_genres: &[PathBuf]) -
         },
     };
 
-    let toml_string = format!(
+let toml_string = format!(
         "# Wallpaper Shuffler Configuration\n\n\
-         # Automatically detected desktop environment (e.g. \"Win32 API\", \"kde\", \"gnome\", \"N/A\")\n\
+         # Desktop backend setting. Choices: \"auto\", \"gnome\", \"kde\", \"win32 api\", \"N/A\"\n\
+         # \"auto\" resolves dynamically using $XDG_CURRENT_DESKTOP on Linux.\n\
          de_backend = \"{}\"\n\n\
-         # Daemon target for wayland compositors. Ignored if a major DE is active.\n\
+         # Wallpaper Daemon for wayland compositors. Used if de_backend resolves to a WC.\n\
          # Supported choices: \"dms\", \"noctalia\", \"swaybg\", \"awww\", \"N/A\"\n\
          wc_daemon = \"{}\"\n\n\
          history_limit = {}\n\n\
