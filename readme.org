@@ -1,0 +1,56 @@
+#+TITLE: Wallpaper Shuffler
+#+AUTHOR: Hunter
+
+A recursive solution to automating wallpaper shuffle while supporting multiple directories. It starts in =~/Pictures/Wallpapers=, randomly picks an available genre choice, and uses =walkdir= to select the wallpaper from there.
+
+* About
+The primary issue with how most operating systems, desktop environments, and window managers natively handle wallpaper shuffling is that they either require you to organize your wallpapers into a single lump sum, or force you to manually choose which specific directory it will pick from.
+
+The purpose of this software is to randomly choose a genre category, then select an image from within that category while keeping a rolling list of the seven most recent images to avoid repeats within a week.
+
+* Supported Environments
+
+| Operating System / Desktop Environment | Command / Protocol Used     | Status    |
+|----------------------------------------+-----------------------------+-----------|
+| *Microsoft Windows*                   | Windows Desktop API         | Supported |
+| *GNOME Desktop*                        | Gsettings                   | Supported |
+| *KDE Plasma 6*                         | =qdbus6=                    | Supported |
+| *Niri*                                 | DMS, Noctalia, Swaybg, awww | Supported |
+| *Hyprland*                             | DMS, Noctalia, Swaybg, awww | Supported |
+| *MangoWM*                              | DMS, Noctalia, Swaybg, awww | Supported |
+
+* Configuration & History
+
+** Windows Paths
+- *Configuration File (Weights):* =%USERPROFILE%\.config\wall_shuff\config.toml=
+- *History Log:* =%USERPROFILE%\.local\share\wall_shuff\history.toml=
+
+** Linux Paths (XDG Standard)
+- *Configuration File (Weights):* =$XDG_CONFIG_HOME/wall_shuff/config.toml=
+- *History Log:* =$XDG_DATA_HOME/wall_shuff/history.toml=
+
+* Automation & Setup
+
+** Windows Setup (Task Scheduler)
+*** Compilation
+1. Run =. install.ps1=.
+2. =install.ps1= will compile the source code and create a basic task in Task Scheduler.
+3. By default, the task runs daily at 00:00 (or as soon as possible if missed).
+
+** Linux
+*** Compilation
+1. In the project root, run =bash install.sh=.
+2. =install.sh= handles automation by compiling the binary, generating systemd service and timer files, moving them to =~/.config/systemd/user/=, reloading daemons via =systemctl --user daemon-reload=, and enabling the timer.
+3. By default, wallpapers shuffle once a day. Edit the systemd timer to change frequency.
+
+#+BEGIN_NOTE
+Using =install.sh= assumes systemd. On other init systems, manual automation setup is required.
+#+END_NOTE
+
+* Dependencies
+** Requires
+- *All Platforms:* Rust
+- *Windows:* Microsoft Visual Studio
+
+* Note
+This project assumes images are located in =~/Pictures/Wallpapers/= or =~\Pictures\Wallpapers\=. If they live elsewhere, update =lib.rs= accordingly.
