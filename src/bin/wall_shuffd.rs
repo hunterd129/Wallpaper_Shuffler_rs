@@ -3,7 +3,7 @@ use std::error::Error;
 #[cfg(target_os = "linux")]
 use std::sync::{Arc, Mutex};
 #[cfg(target_os = "linux")]
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 #[cfg(target_os = "linux")]
 #[derive(Clone, PartialEq, Debug)]
@@ -100,21 +100,25 @@ impl ksni::Tray for WallShuffTray {
 }
 
 #[cfg(target_os = "linux")]
-fn get_target_duration(interval: &RotationInterval) -> Duration {
-    use chrono::Local;
+fn get_next_trigger_time(interval: &RotationInterval) -> chrono::DateTime<chrono::Local> {
+    use chrono::{Duration as ChronoDuration, Local, LocalResult};
+
+    let now = Local::now();
 
     match interval {
-        RotationInterval::Hourly => Duration::from_secs(3600),
+        RotationInterval::Hourly => now + ChronoDuration::hours(1),
         RotationInterval::Daily => {
-            let now = Local::now();
             let tomorrow = (now.date_naive() + chrono::Days::new(1))
                 .and_hms_opt(0, 0, 0)
                 .unwrap();
-            let duration = tomorrow - now.naive_local();
-            Duration::from_secs(duration.num_seconds().max(1) as u64)
+
+            match tomorrow.and_local_timezone(Local) {
+                LocalResult::Single(dt) => dt,
+                _ => now + ChronoDuration::days(1),
+            }
         }
-        RotationInterval::Weekly => Duration::from_secs(7 * 24 * 3600),
-        RotationInterval::Never => Duration::from_secs(u64::MAX),
+        RotationInterval::Weekly => now + ChronoDuration::weeks(1),
+        RotationInterval::Never => now + ChronoDuration::weeks(5200),
     }
 }
 
@@ -131,16 +135,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     service.spawn();
 
     let mut last_interval = current_interval.lock().unwrap().clone();
-    let mut timer_start = Instant::now();
+    let mut next_trigger_time = get_next_trigger_time(&last_interval);
 
     loop {
         std::thread::sleep(Duration::from_secs(1));
 
         let active_preset = current_interval.lock().unwrap().clone();
-        
+
         if active_preset != last_interval {
             last_interval = active_preset.clone();
-            timer_start = Instant::now();
+            next_trigger_time = get_next_trigger_time(&active_preset);
             println!("Interval changed to {:?}", active_preset);
         }
 
@@ -148,10 +152,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             continue;
         }
 
-        let target_duration = get_target_duration(&active_preset);
-
-        if timer_start.elapsed() >= target_duration {
-            timer_start = Instant::now();
+        if chrono::Local::now() >= next_trigger_time {
+            next_trigger_time = get_next_trigger_time(&active_preset);
 
             if let Err(e) = wall_shuff::run_shuffle() {
                 eprintln!("Error during scheduled shuffle: {}", e);
