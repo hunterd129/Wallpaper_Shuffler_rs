@@ -120,7 +120,7 @@ fn get_target_duration(interval: &RotationInterval) -> Duration {
 
 #[cfg(target_os = "linux")]
 fn main() -> Result<(), Box<dyn Error>> {
-    let current_interval = Arc::new(Mutex::new(RotationInterval::Daily)); // Default to Hourly for testing
+    let current_interval = Arc::new(Mutex::new(RotationInterval::Daily));
 
     let tray = WallShuffTray {
         selected_interval: Arc::clone(&current_interval),
@@ -137,8 +137,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         std::thread::sleep(Duration::from_secs(1));
 
         let active_preset = current_interval.lock().unwrap().clone();
-
-        // Reset the countdown timer instantly if the user changes the mode in the tray
+        
         if active_preset != last_interval {
             last_interval = active_preset.clone();
             timer_start = Instant::now();
@@ -152,7 +151,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let target_duration = get_target_duration(&active_preset);
 
         if timer_start.elapsed() >= target_duration {
-            timer_start = Instant::now(); // Reset timer before running
+            timer_start = Instant::now();
 
             if let Err(e) = wall_shuff::run_shuffle() {
                 eprintln!("Error during scheduled shuffle: {}", e);
