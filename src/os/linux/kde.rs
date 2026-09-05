@@ -1,5 +1,4 @@
 use crate::config::AppConfig;
-use notify_rust::Notification;
 use std::path::Path;
 use std::process::Command;
 
@@ -18,7 +17,7 @@ fn build_plasma_script(image_path: &str) -> String {
     )
 }
 
-fn run_cmd_with_fallbck(
+fn run_cmd_with_fallback(
     primary: &str,
     fallback: &str,
     args: &[&str],
@@ -44,19 +43,11 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
         &script,
     ];
 
-    let output = run_cmd_with_fallbck("qdbus6", "qdbus", &qdbus_args)?;
+    let output = run_cmd_with_fallback("qdbus6", "qdbus", &qdbus_args)?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        let err_msg = format!("qdbus evaluation failed: {}", stderr);
-        let _ = Notification::new()
-            .summary("Wall Shuff: Error")
-            .body(&err_msg)
-            .appname("Wall Shuff")
-            .icon("dialog-error")
-            .timeout(5000)
-            .show();
-        return Err(err_msg.into());
+        return Err(format!("qdbus evaluation failed: {}", stderr).into());
     }
 
     if config.kde.lockscreen_support {
@@ -76,29 +67,11 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
             &format!("file://{}", image_path),
         ];
 
-        let lock_res = run_cmd_with_fallbck("kwriteconfig6", "kwriteconfig5", &lock_args);
+        let lock_res = run_cmd_with_fallback("kwriteconfig6", "kwriteconfig5", &lock_args);
         if let Err(e) = lock_res {
             eprintln!("Warning: Failed to update KDE lockscreen: {}", e);
         }
     }
-
-    let genre_name = path
-        .parent()
-        .and_then(|p| p.file_name())
-        .unwrap_or_default()
-        .to_string_lossy();
-    let file_name = path.file_name().unwrap_or_default().to_string_lossy();
-
-    let body_string = format!("<b>Genre:</b> {} | <b>File:</b> {}", genre_name, file_name);
-
-    Notification::new()
-        .summary("Wallpaper Updated")
-        .body(&body_string)
-        .appname("Wall Shuff")
-        .icon("media-playlist-shuffle")
-        .image_path(image_path)
-        .timeout(5000)
-        .show()?;
 
     Ok(())
 }

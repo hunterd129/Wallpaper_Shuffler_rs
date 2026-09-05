@@ -1,5 +1,4 @@
 use crate::config::AppConfig;
-use notify_rust::Notification;
 use std::path::Path;
 use std::process::Command;
 use which::which;
@@ -7,16 +6,6 @@ use which::which;
 pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std::error::Error>> {
     let abs_path = std::fs::canonicalize(path)?;
     let image_path = abs_path.to_str().ok_or("Invalid path string conversion")?;
-
-    let send_error = |msg: &str| {
-        let _ = Notification::new()
-            .summary("Wall Shuff: Error")
-            .body(msg)
-            .appname("Wall Shuff")
-            .icon("dialog-error")
-            .timeout(5000)
-            .show();
-    };
 
     let daemon_name = config.wc_daemon.as_str();
 
@@ -28,9 +17,7 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
 
             if !output.status.success() {
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                let err_msg = format!("Noctalia error: {}", stderr);
-                send_error(&err_msg);
-                return Err(err_msg.into());
+                return Err(format!("Noctalia error: {}", stderr).into());
             }
         }
 
@@ -49,9 +36,7 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
                 .spawn();
 
             if let Err(e) = spawn_result {
-                let err_msg = format!("Failed to launch swaybg: {}", e);
-                send_error(&err_msg);
-                return Err(e.into());
+                return Err(format!("Failed to launch swaybg: {}", e).into());
             }
 
             std::thread::sleep(std::time::Duration::from_millis(150));
@@ -67,9 +52,7 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
 
             if !output.status.success() {
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                let err_msg = format!("Awww error: {}", stderr);
-                send_error(&err_msg);
-                return Err(err_msg.into());
+                return Err(format!("Awww error: {}", stderr).into());
             }
         }
 
@@ -81,41 +64,19 @@ pub fn set_wallpaper(path: &Path, config: &AppConfig) -> Result<(), Box<dyn std:
 
                 if !output.status.success() {
                     let stderr = String::from_utf8_lossy(&output.stderr);
-                    let err_msg = format!("DMS IPC error: {}", stderr);
-                    send_error(&err_msg);
-                    return Err(err_msg.into());
+                    return Err(format!("DMS IPC error: {}", stderr).into());
                 }
             } else {
-                let err_msg = "'dms' executable not found in PATH";
-                send_error(err_msg);
-                return Err(err_msg.into());
+                return Err("'dms' executable not found in PATH".into());
             }
         }
 
         _ => {
-            let err_msg = format!("Unrecognized or unconfigured WC Daemon: '{}'", daemon_name);
-            send_error(&err_msg);
-            return Err(err_msg.into());
+            return Err(
+                format!("Unrecognized or unconfigured WC Daemon: '{}'", daemon_name).into(),
+            );
         }
     }
-
-    let genre_name = path
-        .parent()
-        .and_then(|p| p.file_name())
-        .unwrap_or_default()
-        .to_string_lossy();
-    let file_name = path.file_name().unwrap_or_default().to_string_lossy();
-
-    let body_string = format!("<b>Genre:</b> {} | <b>File:</b> {}", genre_name, file_name);
-
-    Notification::new()
-        .summary("Wallpaper Updated")
-        .body(&body_string)
-        .appname("Wall Shuff")
-        .icon("media-playlist-shuffle")
-        .image_path(image_path)
-        .timeout(5000)
-        .show()?;
 
     Ok(())
 }

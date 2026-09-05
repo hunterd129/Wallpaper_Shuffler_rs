@@ -1,5 +1,7 @@
 #[cfg(target_os = "linux")]
 use std::error::Error;
+#[cfg(target_os = "linux")]
+use std::time::Duration;
 
 #[cfg(target_os = "linux")]
 struct WallShuffTray;
@@ -49,6 +51,21 @@ impl ksni::Tray for WallShuffTray {
 }
 
 #[cfg(target_os = "linux")]
+fn duration_until_midnight() -> Duration {
+    use chrono::Local;
+
+    let now = Local::now();
+    let tomorrow = (now.date_naive() + chrono::Days::new(1))
+        .and_hms_opt(0, 0, 0)
+        .unwrap();
+
+    let now_naive = now.naive_local();
+    let duration = tomorrow - now_naive;
+
+    Duration::from_secs(duration.num_seconds().max(1) as u64)
+}
+
+#[cfg(target_os = "linux")]
 fn main() -> Result<(), Box<dyn Error>> {
     let service = ksni::TrayService::new(WallShuffTray);
     let _handle = service.handle();
@@ -56,7 +73,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     service.spawn();
 
     loop {
-        std::thread::sleep(std::time::Duration::from_secs(3600));
+        let sleep_duration = duration_until_midnight();
+        std::thread::sleep(sleep_duration);
+
+        if let Err(e) = wall_shuff::run_shuffle() {
+            eprintln!("Error during scheduled midnight shuffle: {}", e);
+        }
     }
 }
 
