@@ -1,7 +1,6 @@
 #!/bin/bash
 
 SERVICE_DIR="$HOME/.config/systemd/user"
-APP_DIR="$HOME/.local/share/applications"
 BIN_DIR="$HOME/.local/bin"
 
 # check if using NixOS
@@ -41,15 +40,14 @@ else
     }
 fi
 
-mkdir -p "$SERVICE_DIR" "$APP_DIR" "$BIN_DIR"
+mkdir -p "$SERVICE_DIR" "$BIN_DIR"
 
 mv "target/release/wall_shuff" "$BIN_DIR/"
 if [ -f "target/release/wall_shuffd" ]; then
     mv "target/release/wall_shuffd" "$BIN_DIR/"
 fi
 
-mv "resources/wall_shuff.timer" "resources/wall_shuff.service" "resources/wall_shuffd.service" "$SERVICE_DIR/"
-mv "resources/wall_shuff.desktop" "$APP_DIR/"
+mv "resources/wall_shuffd.service" "$SERVICE_DIR/"
 
 systemctl --user daemon-reload
-systemctl --user enable --now wall_shuffd.timer
+systemctl --user enable --now wall_shuffd.service
