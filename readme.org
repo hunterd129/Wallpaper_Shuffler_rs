@@ -17,7 +17,7 @@ The purpose of this software is to randomly choose a genre category, then select
 | *KDE Plasma 6*                         | =qdbus6=                    | Supported |
 | *Niri*                                 | DMS, Noctalia, Swaybg, awww | Supported |
 | *Hyprland*                             | DMS, Noctalia, Swaybg, awww | Supported |
-| *MangoWM*                              | DMS, Noctalia, Swaybg, awww | Supported |
+| *MangoWC*                              | DMS, Noctalia, Swaybg, awww | Supported |
 
 * Configuration & History
 
@@ -39,9 +39,9 @@ The purpose of this software is to randomly choose a genre category, then select
 
 ** Linux
 *** Compilation
-1. In the project root, run =bash install.sh=.
-2. =install.sh= handles automation by compiling the binary, generating systemd service and timer files, moving them to =~/.config/systemd/user/=, reloading daemons via =systemctl --user daemon-reload=, and enabling the timer.
-3. By default, wallpapers shuffle once a day. Edit the systemd timer to change frequency.
+1. In project root, run =bash install.sh=.
+2. =install.sh= handles automation by compiling the binary, and moving wall_shuffd.service to =~/.config/systemd/user/=, then enabling it with =systemctl --user daemon-reload= and =systemctl --user enable --now wall_shuffd.service=.
+3. By default, wallpapers shuffle once a day. options for hourly, weekly, or manual only are available through wall_shuffd's sys-tray icon under =Rotation Frequency=.
 
 #+BEGIN_NOTE
 Using =install.sh= assumes systemd. On other init systems, manual automation setup is required.
@@ -53,4 +53,4 @@ Using =install.sh= assumes systemd. On other init systems, manual automation set
 - *Windows:* Microsoft Visual Studio
 
 * Note
-This project assumes images are located in =~/Pictures/Wallpapers/= or =~\Pictures\Wallpapers\=. If they live elsewhere, update =lib.rs= accordingly.
+Assumes images are located in =~/Pictures/Wallpapers/= or =~\Pictures\Wallpapers\= (Windows). If they live elsewhere, update =lib.rs= accordingly.
