@@ -17,7 +17,10 @@ fn send_success_notification(path: &Path) {
         .to_string_lossy();
     let file_name = path.file_name().unwrap_or_default().to_string_lossy();
 
-    let body_string = format!("<b>Genre:</b> {} | <b>File:</b> {}", genre_name, file_name);
+    let body_string = format!(
+        "<b>Directory:</b> {} | <b>Image:</b> {}",
+        genre_name, file_name
+    );
 
     let _ = Notification::new()
         .summary("Wallpaper Updated")
