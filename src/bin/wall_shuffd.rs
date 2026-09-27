@@ -101,12 +101,23 @@ impl ksni::Tray for WallShuffTray {
 
 #[cfg(target_os = "linux")]
 fn get_next_trigger_time(interval: &RotationInterval) -> chrono::DateTime<chrono::Local> {
-    use chrono::{Duration as ChronoDuration, Local, LocalResult};
+    use chrono::{Duration as ChronoDuration, Local, LocalResult, Timelike};
 
     let now = Local::now();
 
     match interval {
-        RotationInterval::Hourly => now + ChronoDuration::hours(1),
+        RotationInterval::Hourly => {
+            // Zero out minutes, seconds, and nanoseconds, then step forward 1 hour
+            let top_of_current_hour = now
+                .with_minute(0)
+                .and_then(|dt| dt.with_second(0))
+                .and_then(|dt| dt.with_nanosecond(0));
+
+            match top_of_current_hour {
+                Some(dt) => dt + ChronoDuration::hours(1),
+                None => now + ChronoDuration::hours(1), // Fallback in case of weird DST boundary
+            }
+        }
         RotationInterval::Daily => {
             let tomorrow = (now.date_naive() + chrono::Days::new(1))
                 .and_hms_opt(0, 0, 0)
