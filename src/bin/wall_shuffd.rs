@@ -1,17 +1,50 @@
-#[cfg(target_os = "linux")]
-use std::error::Error;
-#[cfg(target_os = "linux")]
+#![cfg_attr(
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
+)]
+
+// Shared imports
 use std::sync::{Arc, Mutex};
-#[cfg(target_os = "linux")]
 use std::time::Duration;
 
-#[cfg(target_os = "linux")]
 #[derive(Clone, PartialEq, Debug)]
 enum RotationInterval {
     Hourly,
     Daily,
     Weekly,
     Never,
+}
+
+fn get_next_trigger_time(interval: &RotationInterval) -> chrono::DateTime<chrono::Local> {
+    use chrono::{Duration as ChronoDuration, Local, LocalResult, Timelike};
+
+    let now = Local::now();
+
+    match interval {
+        RotationInterval::Hourly => {
+            let top_of_current_hour = now
+                .with_minute(0)
+                .and_then(|dt| dt.with_second(0))
+                .and_then(|dt| dt.with_nanosecond(0));
+
+            match top_of_current_hour {
+                Some(dt) => dt + ChronoDuration::hours(1),
+                None => now + ChronoDuration::hours(1),
+            }
+        }
+        RotationInterval::Daily => {
+            let tomorrow = (now.date_naive() + chrono::Days::new(1))
+                .and_hms_opt(0, 0, 0)
+                .unwrap();
+
+            match tomorrow.and_local_timezone(Local) {
+                LocalResult::Single(dt) => dt,
+                _ => now + ChronoDuration::days(1),
+            }
+        }
+        RotationInterval::Weekly => now + ChronoDuration::weeks(1),
+        RotationInterval::Never => now + ChronoDuration::weeks(5200),
+    }
 }
 
 #[cfg(target_os = "linux")]
@@ -100,41 +133,7 @@ impl ksni::Tray for WallShuffTray {
 }
 
 #[cfg(target_os = "linux")]
-fn get_next_trigger_time(interval: &RotationInterval) -> chrono::DateTime<chrono::Local> {
-    use chrono::{Duration as ChronoDuration, Local, LocalResult, Timelike};
-
-    let now = Local::now();
-
-    match interval {
-        RotationInterval::Hourly => {
-            // Zero out minutes, seconds, and nanoseconds, then step forward 1 hour
-            let top_of_current_hour = now
-                .with_minute(0)
-                .and_then(|dt| dt.with_second(0))
-                .and_then(|dt| dt.with_nanosecond(0));
-
-            match top_of_current_hour {
-                Some(dt) => dt + ChronoDuration::hours(1),
-                None => now + ChronoDuration::hours(1), // Fallback in case of weird DST boundary
-            }
-        }
-        RotationInterval::Daily => {
-            let tomorrow = (now.date_naive() + chrono::Days::new(1))
-                .and_hms_opt(0, 0, 0)
-                .unwrap();
-
-            match tomorrow.and_local_timezone(Local) {
-                LocalResult::Single(dt) => dt,
-                _ => now + ChronoDuration::days(1),
-            }
-        }
-        RotationInterval::Weekly => now + ChronoDuration::weeks(1),
-        RotationInterval::Never => now + ChronoDuration::weeks(5200),
-    }
-}
-
-#[cfg(target_os = "linux")]
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let current_interval = Arc::new(Mutex::new(RotationInterval::Daily));
 
     let tray = WallShuffTray {
@@ -173,7 +172,109 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 }
 
-#[cfg(not(target_os = "linux"))]
-fn main() {
-    eprintln!("wall_shuffd is only supported on Linux.");
+#[cfg(target_os = "windows")]
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    use muda::{Menu, MenuItem, PredefinedMenuItem, Submenu};
+    use tray_icon::{Icon, TrayIconBuilder};
+
+    let current_interval = Arc::new(Mutex::new(RotationInterval::Daily));
+
+    let menu = Menu::new();
+    let item_shuffle = MenuItem::new("Shuffle Now", true, None);
+
+    let interval_menu = Submenu::new("Rotation Frequency", true);
+    let item_hourly = MenuItem::new("Every Hour", true, None);
+    let item_daily = MenuItem::new("Daily (00:00:00)", true, None);
+    let item_weekly = MenuItem::new("Weekly", true, None);
+    let item_never = MenuItem::new("Disabled / Manual Only", true, None);
+
+    let _ = interval_menu.append_items(&[
+        &item_hourly,
+        &item_daily,
+        &item_weekly,
+        &PredefinedMenuItem::separator(),
+        &item_never,
+    ]);
+
+    let item_quit = MenuItem::new("Quit", true, None);
+
+    let _ = menu.append_items(&[
+        &item_shuffle,
+        &PredefinedMenuItem::separator(),
+        &interval_menu,
+        &PredefinedMenuItem::separator(),
+        &item_quit,
+    ]);
+
+    let (icon_rgba, icon_width, icon_height) = (vec![255u8; 32 * 32 * 4], 32, 32);
+    let icon = Icon::from_rgba(icon_rgba, icon_width, icon_height)?;
+
+    let _tray_icon = TrayIconBuilder::new()
+        .with_menu(Box::new(menu))
+        .with_tooltip("Wall Shuff")
+        .with_icon(icon)
+        .build()?;
+
+    let interval_clone = Arc::clone(&current_interval);
+    std::thread::spawn(move || {
+        let mut last_interval = interval_clone.lock().unwrap().clone();
+        let mut next_trigger_time = get_next_trigger_time(&last_interval);
+
+        loop {
+            std::thread::sleep(Duration::from_secs(1));
+
+            let active_preset = interval_clone.lock().unwrap().clone();
+
+            if active_preset != last_interval {
+                last_interval = active_preset.clone();
+                next_trigger_time = get_next_trigger_time(&active_preset);
+            }
+
+            if active_preset == RotationInterval::Never {
+                continue;
+            }
+
+            if chrono::Local::now() >= next_trigger_time {
+                next_trigger_time = get_next_trigger_time(&active_preset);
+                if let Err(e) = wall_shuff::run_shuffle() {
+                    eprintln!("Error during scheduled shuffle: {}", e);
+                }
+            }
+        }
+    });
+
+    let menu_channel = muda::MenuEvent::receiver();
+
+    loop {
+        // Dispatch Win32 messages
+        unsafe {
+            use windows::Win32::UI::WindowsAndMessaging::{
+                DispatchMessageW, PeekMessageW, TranslateMessage, MSG, PM_REMOVE,
+            };
+            let mut msg = MSG::default();
+            while PeekMessageW(&mut msg, None, 0, 0, PM_REMOVE).into() {
+                TranslateMessage(&msg);
+                DispatchMessageW(&msg);
+            }
+        }
+
+        // Handle Tray Menu Events
+        if let Ok(event) = menu_channel.try_recv() {
+            if event.id == item_shuffle.id() {
+                let _ = wall_shuff::run_shuffle();
+            } else if event.id == item_hourly.id() {
+                *current_interval.lock().unwrap() = RotationInterval::Hourly;
+            } else if event.id == item_daily.id() {
+                *current_interval.lock().unwrap() = RotationInterval::Daily;
+            } else if event.id == item_weekly.id() {
+                *current_interval.lock().unwrap() = RotationInterval::Weekly;
+            } else if event.id == item_never.id() {
+                *current_interval.lock().unwrap() = RotationInterval::Never;
+            } else if event.id == item_quit.id() {
+                std::process::exit(0);
+            }
+        }
+
+        std::thread::sleep(Duration::from_millis(16));
+    }
 }
