@@ -74,9 +74,9 @@ let (detected_de, is_major_de) = {
         io::stdin().read_line(&mut choice).unwrap();
 
         match choice.trim() {
+            "1" => "dms".to_string(),
             "2" => "swaybg".to_string(),
             "3" => "awww".to_string(),
-            "1" => "dms".to_string(),
             "4" => "noctalia".to_string(),
             _ => "awww".to_string(),
         }
