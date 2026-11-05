@@ -32,16 +32,27 @@ The purpose of this software is to randomly choose a genre category, then select
 * Automation & Setup
 
 ** Windows Setup (Task Scheduler)
+*** Getting Started (Windows Branch)
+If you are on Windows, ensure you are using the windows-freeze branch before compiling:
+#+BEGIN_SRC bash
+git clone -b windows-freeze https://github.com/hunterd129/Wallpaper_Shuffler_rs
+#+END_SRC
+If you already have Wallpaper_Shuffler_rs cloned, be sure to switch to the windows-freeze branch before compiling:
+#+BEGIN_SRC
+git fetch origin
+git switch windows-freeze
+#+END_SRC
+
 *** Compilation
-1. Run =. install.ps1=.
-2. =install.ps1= will compile the source code and create a basic task in Task Scheduler.
+1. In project root, run =. install.ps1=.
+2. =install.ps1= will compile wall_shuff and create a basic task in Task Scheduler.
 3. By default, the task runs daily at 00:00 (or as soon as possible if missed).
 
 ** Linux
 *** Compilation
 1. In project root, run =bash install.sh=.
 2. =install.sh= handles automation by compiling the binary, and moving wall_shuffd.service to =~/.config/systemd/user/=, then enabling it with =systemctl --user daemon-reload= and =systemctl --user enable --now wall_shuffd.service=.
-3. By default, wallpapers shuffle once a day. options for hourly, weekly, or manual only are available through wall_shuffd's sys-tray icon under =Rotation Frequency=.
+3. By default, wallpapers shuffle once a day. options for hourly, weekly, or manual are available through wall_shuffd's sys-tray icon under =Rotation Frequency=.
 
 #+BEGIN_NOTE
 Using =install.sh= assumes systemd. On other init systems, manual automation setup is required.
