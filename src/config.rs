@@ -37,75 +37,101 @@ impl Default for KdeConfig {
 }
 
 pub fn load_or_create_config(config_path: &Path, available_genres: &[PathBuf]) -> AppConfig {
-    #[cfg(target_os = "windows")]
-    let (detected_de, is_major_de) = ("Win32 API".to_string(), true);
-
-    #[cfg(not(target_os = "windows"))]
-let (detected_de, is_major_de) = {
     let desktop = env::var("XDG_CURRENT_DESKTOP")
         .unwrap_or_else(|_| "unknown".to_string())
         .to_lowercase();
 
-    let is_de = desktop.contains("gnome") || desktop.contains("kde") || desktop.contains("plasma");
+    let is_major_de =
+        desktop.contains("gnome") || desktop.contains("kde") || desktop.contains("plasma");
+    let is_target_compositor =
+        desktop.contains("niri") || desktop.contains("hyprland") || desktop.contains("mangowm");
+    let detected_de = "auto".to_string();
 
-    ("auto".to_string(), is_de)
-};
+    let mut existing_config = None;
+    let mut needs_setup = false;
 
     if config_path.exists() {
         if let Ok(content) = fs::read_to_string(config_path) {
             if let Ok(config) = toml::from_str::<AppConfig>(&content) {
-                return config;
+                if config.wc_daemon.eq_ignore_ascii_case("n/a") && is_target_compositor {
+                    needs_setup = true;
+                }
+                existing_config = Some(config);
+            } else {
+                needs_setup = true;
             }
+        } else {
+            needs_setup = true;
         }
+    } else {
+        needs_setup = true;
     }
 
-    let selected_daemon = if is_major_de {
-        "N/A".to_string()
+    let mut config = if !needs_setup {
+        existing_config.unwrap()
     } else {
-        println!("Please select your background controller daemon (WC Daemon):");
-        println!("  [1] Dank Material Shell (dms)");
-        println!("  [2] swaybg (Wayland)");
-        println!("  [3] awww (Animated/Wayland)");
-        println!("  [4] Noctalia");
-        print!("Enter choice (1-4): ");
-        io::stdout().flush().unwrap();
+        let selected_daemon = if is_major_de {
+            "N/A".to_string()
+        } else {
+            println!("Please select your background controller daemon (WC Daemon):");
+            println!("  [1] Dank Material Shell (dms)");
+            println!("  [2] swaybg (Wayland)");
+            println!("  [3] awww (Animated/Wayland)");
+            println!("  [4] Noctalia");
+            print!("Enter choice (1-4): ");
+            io::stdout().flush().unwrap();
 
-        let mut choice = String::new();
-        io::stdin().read_line(&mut choice).unwrap();
+            let mut choice = String::new();
+            io::stdin().read_line(&mut choice).unwrap();
 
-        match choice.trim() {
-            "1" => "dms".to_string(),
-            "2" => "swaybg".to_string(),
-            "3" => "awww".to_string(),
-            "4" => "noctalia".to_string(),
-            _ => "awww".to_string(),
+            match choice.trim() {
+                "1" => "dms".to_string(),
+                "2" => "swaybg".to_string(),
+                "3" => "awww".to_string(),
+                "4" => "noctalia".to_string(),
+                _ => "awww".to_string(),
+            }
+        };
+
+        if let Some(mut existing) = existing_config {
+            existing.wc_daemon = selected_daemon;
+            existing
+        } else {
+            let mut default_weights = HashMap::new();
+            for path in available_genres {
+                if let Some(filename) = path.file_name() {
+                    let dir_name = filename.to_string_lossy().into_owned();
+                    default_weights.insert(dir_name, 1.0);
+                }
+            }
+
+            AppConfig {
+                de_backend: detected_de,
+                wc_daemon: selected_daemon,
+                history_limit: 7,
+                weights: default_weights,
+                kde: KdeConfig {
+                    lockscreen_support: true,
+                },
+            }
         }
     };
-
-    let mut default_weights = HashMap::new();
-    let mut weights_toml_buffer = String::new();
 
     for path in available_genres {
         if let Some(filename) = path.file_name() {
             let dir_name = filename.to_string_lossy().into_owned();
-            default_weights.insert(dir_name.clone(), 1.0);
-            weights_toml_buffer.push_str(&format!("\"{}\" = 1.0\n", dir_name));
+            config.weights.entry(dir_name).or_insert(1.0);
         }
     }
 
-    let new_config = AppConfig {
-        de_backend: detected_de,
-        wc_daemon: selected_daemon,
-        history_limit: 7,
-        weights: default_weights,
-        kde: KdeConfig {
-            lockscreen_support: true,
-        },
-    };
+    let mut weights_toml_buffer = String::new();
+    for (dir_name, weight) in &config.weights {
+        weights_toml_buffer.push_str(&format!("\"{}\" = {:.1}\n", dir_name, weight));
+    }
 
-let toml_string = format!(
+    let toml_string = format!(
         "# Wallpaper Shuffler Configuration\n\n\
-         # Desktop backend setting. Choices: \"auto\", \"gnome\", \"kde\", \"win32 api\", \"N/A\"\n\
+         # Desktop backend setting. Choices: \"auto\", \"gnome\", \"kde\", \"N/A\"\n\
          # \"auto\" resolves dynamically using $XDG_CURRENT_DESKTOP on Linux.\n\
          de_backend = \"{}\"\n\n\
          # Wallpaper Daemon for wayland compositors. Used if de_backend resolves to a WC.\n\
@@ -119,16 +145,16 @@ let toml_string = format!(
          # Discovered background folders. Increase the value to make a choice more frequent.\n\
          # A weight of 0 will completely disable a folder from rolling.\n\
          {}",
-        new_config.de_backend, new_config.wc_daemon, new_config.history_limit, weights_toml_buffer
+        config.de_backend, config.wc_daemon, config.history_limit, weights_toml_buffer
     );
 
     if let Some(parent) = config_path.parent() {
         let _ = fs::create_dir_all(parent);
     }
 
-    if fs::write(config_path, toml_string).is_ok() && !is_major_de {
+    if fs::write(config_path, toml_string).is_ok() && !is_major_de && needs_setup {
         println!("Config successfully written to: {:?}", config_path);
     }
 
-    new_config
+    config
 }
