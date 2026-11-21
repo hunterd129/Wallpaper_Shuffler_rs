@@ -133,17 +133,21 @@ pub fn load_or_create_config(config_path: &Path, available_genres: &[PathBuf]) -
         "# Wallpaper Shuffler Configuration\n\n\
          # Desktop backend setting. Choices: \"auto\", \"gnome\", \"kde\", \"N/A\"\n\
          # \"auto\" resolves dynamically using $XDG_CURRENT_DESKTOP on Linux.\n\
+         # Set to \"auto\" by default.\n\
          de_backend = \"{}\"\n\n\
-         # Wallpaper Daemon for wayland compositors. Used if de_backend resolves to a WC.\n\
+         # Wallpaper Daemon for wayland compositors. Used if de_backend resolves to a WC.\n\n\
+         # If wc_daemon is set to \"N/A\" and $XDG_CURRENT_DESKTOP returns one of the supported WCs,\n\
+         # you will be prompted to select one of the supported options.\n\n\
          # Supported choices: \"dms\", \"noctalia\", \"swaybg\", \"awww\", \"N/A\"\n\
          wc_daemon = \"{}\"\n\n\
          history_limit = {}\n\n\
          [kde]\n\
          # Sync the lock screen background with your desktop background\n\
+         # set to true by default\n\
          lockscreen_support = true\n\n\
          [weights]\n\
-         # Discovered background folders. Increase the value to make a choice more frequent.\n\
-         # A weight of 0 will completely disable a folder from rolling.\n\
+         # Discovered wallpaper dirs. Increase the value to make a choice more frequent.\n\
+         # A weight of 0 will disable a dir from being selected.\n\
          {}",
         config.de_backend, config.wc_daemon, config.history_limit, weights_toml_buffer
     );
